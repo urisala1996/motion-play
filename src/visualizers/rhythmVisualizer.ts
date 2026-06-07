@@ -17,8 +17,6 @@ export class RhythmVisualizer {
   private wedgeFadeouts: number[] = [0, 0, 0, 0, 0, 0];
   private expandingRings: Array<{ startTime: number; zone: number }> = [];
   private animationId: number | null = null;
-  private logicalWidth: number = 0;
-  private logicalHeight: number = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -29,28 +27,27 @@ export class RhythmVisualizer {
 
   private resizeCanvas() {
     const dpr = window.devicePixelRatio || 1;
-    this.logicalWidth = window.innerWidth;
-    this.logicalHeight = window.innerHeight;
-    this.canvas.width = this.logicalWidth * dpr;
-    this.canvas.height = this.logicalHeight * dpr;
-    this.canvas.style.width = this.logicalWidth + 'px';
-    this.canvas.style.height = this.logicalHeight + 'px';
+    const rect = this.canvas.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+
+    this.canvas.width = w * dpr;
+    this.canvas.height = h * dpr;
     this.ctx.scale(dpr, dpr);
   }
 
   triggerZone(zone: number) {
     this.hitCounts[zone]++;
-    this.wedgeFadeouts[zone] = 400; // Flash duration in ms
+    this.wedgeFadeouts[zone] = 400;
 
-    // Expanding ring
     this.expandingRings.push({
       startTime: performance.now(),
       zone,
     });
 
-    // Particle burst
-    const centerX = this.canvas.width / 2;
-    const centerY = this.canvas.height / 2;
+    const rect = this.canvas.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
     const angle = (zone * 60 + 30) * (Math.PI / 180);
 
     for (let i = 0; i < 30; i++) {
@@ -86,22 +83,20 @@ export class RhythmVisualizer {
   }
 
   render() {
-    const width = this.logicalWidth;
-    const height = this.logicalHeight;
+    const rect = this.canvas.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
     const centerX = width / 2;
     const centerY = height / 2;
     const now = performance.now();
 
-    // Clear background
     this.ctx.fillStyle = '#080810';
     this.ctx.fillRect(0, 0, width, height);
 
-    // Draw base wedges with heat map
     const innerRadius = 60;
     const outerRadius = 200;
     const maxHits = Math.max(1, ...this.hitCounts);
 
-    DRUM_COLORS as any;
     const colors = Object.values(DRUM_COLORS) as string[];
 
     for (let i = 0; i < 6; i++) {
@@ -109,7 +104,6 @@ export class RhythmVisualizer {
       const endAngle = (((i + 1) * 60 - 30) * Math.PI) / 180;
       const color = colors[i];
 
-      // Heat glow on outer ring
       const heatAlpha = this.hitCounts[i] / maxHits * 0.4;
       this.ctx.strokeStyle = color.replace(')', `, ${heatAlpha})`).replace('rgb', 'rgba');
       this.ctx.lineWidth = 8;
@@ -117,14 +111,12 @@ export class RhythmVisualizer {
       this.ctx.arc(centerX, centerY, outerRadius + 30, startAngle, endAngle);
       this.ctx.stroke();
 
-      // Base wedge
       const fadeAlpha = Math.min(1, this.wedgeFadeouts[i] / 400) * 0.5 + 0.2;
       this.drawWedge(centerX, centerY, innerRadius, outerRadius, startAngle, endAngle, color, fadeAlpha);
 
       this.wedgeFadeouts[i] -= 16;
     }
 
-    // Draw center circle
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
     this.ctx.beginPath();
     this.ctx.arc(centerX, centerY, innerRadius - 10, 0, Math.PI * 2);
@@ -133,7 +125,6 @@ export class RhythmVisualizer {
     this.ctx.lineWidth = 2;
     this.ctx.stroke();
 
-    // Draw expanding rings
     this.expandingRings = this.expandingRings.filter((ring) => {
       const elapsed = now - ring.startTime;
       if (elapsed > 400) return false;
@@ -151,7 +142,6 @@ export class RhythmVisualizer {
       return true;
     });
 
-    // Update and draw particles
     this.particles = this.particles.filter((p) => {
       p.life -= 16;
       if (p.life <= 0) return false;

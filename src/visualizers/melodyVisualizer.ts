@@ -1,4 +1,3 @@
-
 interface BloomCircle {
   x: number;
   y: number;
@@ -13,8 +12,6 @@ export class MelodyVisualizer {
   private hitCounts: number[] = [0, 0, 0, 0, 0, 0, 0, 0];
   private bloomCircles: BloomCircle[] = [];
   private animationId: number | null = null;
-  private logicalWidth: number = 0;
-  private logicalHeight: number = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -25,12 +22,12 @@ export class MelodyVisualizer {
 
   private resizeCanvas() {
     const dpr = window.devicePixelRatio || 1;
-    this.logicalWidth = window.innerWidth;
-    this.logicalHeight = window.innerHeight;
-    this.canvas.width = this.logicalWidth * dpr;
-    this.canvas.height = this.logicalHeight * dpr;
-    this.canvas.style.width = this.logicalWidth + 'px';
-    this.canvas.style.height = this.logicalHeight + 'px';
+    const rect = this.canvas.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+
+    this.canvas.width = w * dpr;
+    this.canvas.height = h * dpr;
     this.ctx.scale(dpr, dpr);
   }
 
@@ -40,12 +37,12 @@ export class MelodyVisualizer {
 
   triggerZone(zone: number) {
     this.hitCounts[zone]++;
-    const centerX = this.canvas.width / 2;
-    const zoneHeight = this.canvas.height / 8;
+    const rect = this.canvas.getBoundingClientRect();
+    const zoneHeight = rect.height / 8;
     const y = (zone + 0.5) * zoneHeight;
 
     this.bloomCircles.push({
-      x: centerX,
+      x: rect.width / 2,
       y,
       startTime: performance.now(),
       zone,
@@ -54,14 +51,14 @@ export class MelodyVisualizer {
 
   private getZoneColor(zone: number, intensity: number = 1): string {
     const colors = [
-      '#ff6b35', // warm orange
-      '#f7931e', // orange
-      '#fbb034', // gold
-      '#fddd4e', // yellow
-      '#7ec8e3', // light cyan
-      '#55a7ce', // cyan
-      '#5b7fbf', // blue
-      '#7c3aed', // violet
+      '#ff6b35',
+      '#f7931e',
+      '#fbb034',
+      '#fddd4e',
+      '#7ec8e3',
+      '#55a7ce',
+      '#5b7fbf',
+      '#7c3aed',
     ];
 
     const color = colors[zone];
@@ -70,34 +67,30 @@ export class MelodyVisualizer {
   }
 
   render() {
-    const width = this.logicalWidth;
-    const height = this.logicalHeight;
+    const rect = this.canvas.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
     const now = performance.now();
     const zoneHeight = height / 8;
 
-    // Clear background
     this.ctx.fillStyle = '#080810';
     this.ctx.fillRect(0, 0, width, height);
 
-    // Draw vertical gradient bands (notes)
     const maxHits = Math.max(1, ...this.hitCounts);
 
     for (let i = 0; i < 8; i++) {
       const y = i * zoneHeight;
       const intensity = this.hitCounts[i] / maxHits;
 
-      // Base band with heat saturation
       const color = this.getZoneColor(i, intensity);
       this.ctx.fillStyle = color;
       this.ctx.fillRect(0, y, width, zoneHeight);
 
-      // Border
       this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
       this.ctx.lineWidth = 1;
       this.ctx.strokeRect(0, y, width, zoneHeight);
     }
 
-    // Draw zone cursor (horizontal glowing band)
     const cursorY = (this.currentZone + 0.5) * zoneHeight;
     const cursorGradient = this.ctx.createLinearGradient(0, cursorY - 20, 0, cursorY + 20);
     cursorGradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
@@ -106,7 +99,6 @@ export class MelodyVisualizer {
     this.ctx.fillStyle = cursorGradient;
     this.ctx.fillRect(0, cursorY - 30, width, 60);
 
-    // Draw scale strip on right edge
     for (let i = 0; i < 8; i++) {
       const y = i * zoneHeight;
       const isActive = i === this.currentZone;
@@ -123,7 +115,6 @@ export class MelodyVisualizer {
       }
     }
 
-    // Draw bloom circles
     this.bloomCircles = this.bloomCircles.filter((bloom) => {
       const elapsed = now - bloom.startTime;
       if (elapsed > 600) return false;
@@ -133,14 +124,12 @@ export class MelodyVisualizer {
       const radius = maxRadius * progress;
       const alpha = 1 - progress;
 
-      // Main bloom
       this.ctx.strokeStyle = `rgba(240, 171, 252, ${alpha * 0.5})`;
       this.ctx.lineWidth = 3;
       this.ctx.beginPath();
       this.ctx.arc(bloom.x, bloom.y, radius, 0, Math.PI * 2);
       this.ctx.stroke();
 
-      // Harmonic overtone rings
       for (let i = 1; i <= 2; i++) {
         const overtoneRadius = radius * (1 + i * 0.3);
         this.ctx.strokeStyle = `rgba(124, 58, 237, ${alpha * 0.3 / i})`;
