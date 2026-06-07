@@ -17,6 +17,8 @@ export class RhythmVisualizer {
   private wedgeFadeouts: number[] = [0, 0, 0, 0, 0, 0];
   private expandingRings: Array<{ startTime: number; zone: number }> = [];
   private animationId: number | null = null;
+  private logicalWidth: number = 0;
+  private logicalHeight: number = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -27,10 +29,12 @@ export class RhythmVisualizer {
 
   private resizeCanvas() {
     const dpr = window.devicePixelRatio || 1;
-    this.canvas.width = window.innerWidth * dpr;
-    this.canvas.height = window.innerHeight * dpr;
-    this.canvas.style.width = window.innerWidth + 'px';
-    this.canvas.style.height = window.innerHeight + 'px';
+    this.logicalWidth = window.innerWidth;
+    this.logicalHeight = window.innerHeight;
+    this.canvas.width = this.logicalWidth * dpr;
+    this.canvas.height = this.logicalHeight * dpr;
+    this.canvas.style.width = this.logicalWidth + 'px';
+    this.canvas.style.height = this.logicalHeight + 'px';
     this.ctx.scale(dpr, dpr);
   }
 
@@ -82,8 +86,8 @@ export class RhythmVisualizer {
   }
 
   render() {
-    const width = this.canvas.width;
-    const height = this.canvas.height;
+    const width = this.logicalWidth;
+    const height = this.logicalHeight;
     const centerX = width / 2;
     const centerY = height / 2;
     const now = performance.now();

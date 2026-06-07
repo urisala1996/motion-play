@@ -13,6 +13,8 @@ export class MelodyVisualizer {
   private hitCounts: number[] = [0, 0, 0, 0, 0, 0, 0, 0];
   private bloomCircles: BloomCircle[] = [];
   private animationId: number | null = null;
+  private logicalWidth: number = 0;
+  private logicalHeight: number = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -23,10 +25,12 @@ export class MelodyVisualizer {
 
   private resizeCanvas() {
     const dpr = window.devicePixelRatio || 1;
-    this.canvas.width = window.innerWidth * dpr;
-    this.canvas.height = window.innerHeight * dpr;
-    this.canvas.style.width = window.innerWidth + 'px';
-    this.canvas.style.height = window.innerHeight + 'px';
+    this.logicalWidth = window.innerWidth;
+    this.logicalHeight = window.innerHeight;
+    this.canvas.width = this.logicalWidth * dpr;
+    this.canvas.height = this.logicalHeight * dpr;
+    this.canvas.style.width = this.logicalWidth + 'px';
+    this.canvas.style.height = this.logicalHeight + 'px';
     this.ctx.scale(dpr, dpr);
   }
 
@@ -66,8 +70,8 @@ export class MelodyVisualizer {
   }
 
   render() {
-    const width = this.canvas.width;
-    const height = this.canvas.height;
+    const width = this.logicalWidth;
+    const height = this.logicalHeight;
     const now = performance.now();
     const zoneHeight = height / 8;
 
