@@ -13,7 +13,9 @@ export const useAccelerometer = ({
   onMelodyZone,
   enabled = true,
 }: UseAccelerometerOptions) => {
-  const hasPermissionRef = useRef(false);
+  const hasPermissionRef = useRef(
+    typeof (DeviceMotionEvent as any).requestPermission !== 'function'
+  );
 
   const handleDeviceMotion = useCallback(
     (event: DeviceMotionEvent) => {
@@ -34,22 +36,22 @@ export const useAccelerometer = ({
   );
 
   const requestPermission = useCallback(async () => {
+    console.log('requestPermission called');
     if (typeof DeviceMotionEvent === 'undefined') {
       console.warn('DeviceMotionEvent not available');
       return false;
     }
 
-    if (
-      typeof (DeviceMotionEvent as any).requestPermission !== 'function' &&
-      typeof (window as any).DeviceMotionEvent !== 'undefined'
-    ) {
-      // Non-iOS device, permission granted by default
+    if (typeof (DeviceMotionEvent as any).requestPermission !== 'function') {
+      console.log('Non-iOS device, assuming permission granted');
       hasPermissionRef.current = true;
       return true;
     }
 
     try {
+      console.log('Requesting iOS motion permission...');
       const permission = await (DeviceMotionEvent as any).requestPermission();
+      console.log('Permission result:', permission);
       if (permission === 'granted') {
         hasPermissionRef.current = true;
         return true;
@@ -62,10 +64,13 @@ export const useAccelerometer = ({
   }, []);
 
   useEffect(() => {
+    console.log('useAccelerometer effect', { enabled, hasPermission: hasPermissionRef.current });
     if (!enabled || !hasPermissionRef.current) return;
 
+    console.log('Attaching devicemotion listener');
     window.addEventListener('devicemotion', handleDeviceMotion);
     return () => {
+      console.log('Removing devicemotion listener');
       window.removeEventListener('devicemotion', handleDeviceMotion);
     };
   }, [enabled, handleDeviceMotion]);

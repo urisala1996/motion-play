@@ -6,14 +6,26 @@ interface SplashScreenProps {
 
 export function SplashScreen({ onStarted }: SplashScreenProps) {
   const handleStart = async () => {
-    await Tone.start();
+    try {
+      await Tone.start();
+      console.log('Audio context unlocked');
+    } catch (error) {
+      console.error('Failed to unlock audio:', error);
+    }
 
-    if (typeof (DeviceMotionEvent as any).requestPermission === 'function') {
-      try {
-        await (DeviceMotionEvent as any).requestPermission();
-      } catch (error) {
-        console.warn('Motion permission denied or not available');
+    try {
+      if (typeof (DeviceMotionEvent as any).requestPermission === 'function') {
+        console.log('Requesting motion permission...');
+        const permission = await (DeviceMotionEvent as any).requestPermission();
+        console.log('Motion permission result:', permission);
+        if (permission !== 'granted') {
+          console.warn('Motion permission not granted');
+        }
+      } else {
+        console.log('DeviceMotionEvent.requestPermission not available (non-iOS)');
       }
+    } catch (error) {
+      console.error('Motion permission error:', error);
     }
 
     onStarted();
