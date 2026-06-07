@@ -90,7 +90,7 @@ export class RhythmVisualizer {
     const centerY = height / 2;
     const now = performance.now();
 
-    this.ctx.fillStyle = '#080810';
+    this.ctx.fillStyle = '#1a0033';
     this.ctx.fillRect(0, 0, width, height);
 
     const innerRadius = 60;

@@ -73,7 +73,7 @@ export class MelodyVisualizer {
     const now = performance.now();
     const zoneHeight = height / 8;
 
-    this.ctx.fillStyle = '#080810';
+    this.ctx.fillStyle = '#1a0033';
     this.ctx.fillRect(0, 0, width, height);
 
     const maxHits = Math.max(1, ...this.hitCounts);

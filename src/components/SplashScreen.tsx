@@ -36,7 +36,7 @@ export function SplashScreen({ onStarted }: SplashScreenProps) {
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: '#080810',
+        backgroundColor: '#1a0033',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -67,8 +67,8 @@ export function SplashScreen({ onStarted }: SplashScreenProps) {
         onClick={handleStart}
         style={{
           padding: '16px 32px',
-          backgroundColor: '#7c3aed',
-          color: 'white',
+          backgroundColor: '#00ff00',
+          color: '#1a0033',
           fontWeight: 'bold',
           border: 'none',
           borderRadius: '8px',
